@@ -1,19 +1,60 @@
+import 'package:experiment/other_msg_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
+import 'msg_model.dart';
+import 'own_msg_widget.dart';
 
 class ChatPage extends StatefulWidget {
   final String name;
   const ChatPage({Key? key, required this.name}) : super(key: key);
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<ChatPage> createState() => ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class ChatPageState extends State<ChatPage> {
   IO.Socket? socket;
+  List<MsgModel> listMsg = [];
+  final TextEditingController _msgController = TextEditingController();
   @override
   void initState() {
     super.initState();
+    connect();
+  }
+
+  void connect() {
+    socket = IO.io("http://localhost:3000", <String, dynamic>{
+      "transports": ["websocket"],
+      "autoConnect": false,
+    });
+    socket!.connect();
+    socket!.onConnect((_) => {
+          socket!.on("sendMsgServer", (msg) {
+            setState(() {
+              listMsg.add(
+                MsgModel(
+                    msg: msg["msg"],
+                    type: msg["type"],
+                    sender: msg["senderName"]),
+              );
+            });
+          })
+        });
+  }
+
+  void sendMsg(String msg, senderName) {
+    MsgModel ownMsg = MsgModel(msg: msg, type: "ownMsg", sender: senderName);
+
+    listMsg.add(ownMsg);
+    setState(() {
+      listMsg;
+    });
+    socket!.emit('sendMsg', {
+      "type": "ownMsg",
+      "msg": msg,
+      "senderName": senderName,
+    });
   }
 
   @override
@@ -47,7 +88,21 @@ class _ChatPageState extends State<ChatPage> {
             ),
             child: Column(
               children: [
-                Expanded(child: Container()),
+                Expanded(
+                    child: ListView.builder(
+                        itemCount: listMsg.length,
+                        itemBuilder: (context, index) {
+                          if (listMsg[index].type == "ownMsg") {
+                            return ownMsgWidget(
+                                msg: listMsg[index].msg,
+                                sender: listMsg[index].sender);
+                          } else {
+                            return otherMsgWidget(
+                                msg: listMsg[index].msg,
+                                sender: listMsg[index].sender);
+                          }
+                          ;
+                        })),
               ],
             )),
         floatingActionButton: Padding(
@@ -56,15 +111,22 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               Expanded(
                   child: TextFormField(
+                controller: _msgController,
                 decoration: const InputDecoration(
                   hintText: "Type something...",
                   border: OutlineInputBorder(borderSide: BorderSide(width: 2)),
                 ),
               )),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  String msg = _msgController.text;
+                  if (msg.isEmpty) {
+                    sendMsg(msg, widget.name);
+                    _msgController.clear();
+                  }
+                },
                 icon: const Icon(Icons.send),
-                color: Color.fromARGB(255, 5, 89, 157),
+                color: const Color.fromARGB(255, 5, 89, 157),
               )
             ],
           ),
