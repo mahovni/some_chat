@@ -16,7 +16,7 @@ class ownMsgWidget extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width - 60,
         ),
         child: Card(
-          color: Color.fromARGB(255, 49, 180, 112),
+          color: const Color.fromARGB(255, 49, 180, 112),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: Padding(
@@ -27,15 +27,15 @@ class ownMsgWidget extends StatelessWidget {
               children: [
                 Text(
                   sender,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
                   msg,
-                  style: TextStyle(fontSize: 14, color: Colors.black),
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
                 ),
               ],
             ),
