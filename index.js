@@ -11,10 +11,12 @@ app.route("/").get((req, res) => {
 })
 
 io.on("connection", (socket) => {
+    socket.join("some_chat");
     console.log("backend connected");
     socket.on("sendMsg", (msg) => {
         console.log("msg", msg);
-        socket.emit("sendMsgServer",{...msg, type: "otherMsg"})
+        io.to("some_group").emit("sendMsgServer", { ...msg, type: "otherMsg" });
+
     })
 });
 
