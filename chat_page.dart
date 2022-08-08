@@ -7,7 +7,9 @@ import 'own_msg_widget.dart';
 
 class ChatPage extends StatefulWidget {
   final String name;
-  const ChatPage({Key? key, required this.name}) : super(key: key);
+  final String userId;
+  const ChatPage({Key? key, required this.name, required this.userId})
+      : super(key: key);
 
   @override
   State<ChatPage> createState() => ChatPageState();
@@ -31,14 +33,16 @@ class ChatPageState extends State<ChatPage> {
     socket!.connect();
     socket!.onConnect((_) => {
           socket!.on("sendMsgServer", (msg) {
-            setState(() {
-              listMsg.add(
-                MsgModel(
-                    msg: msg["msg"],
-                    type: msg["type"],
-                    sender: msg["senderName"]),
-              );
-            });
+            if (msg["userId"] != widget.userId) {
+              setState(() {
+                listMsg.add(
+                  MsgModel(
+                      msg: msg["msg"],
+                      type: msg["type"],
+                      sender: msg["senderName"]),
+                );
+              });
+            }
           })
         });
   }
@@ -46,14 +50,14 @@ class ChatPageState extends State<ChatPage> {
   void sendMsg(String msg, senderName) {
     MsgModel ownMsg = MsgModel(msg: msg, type: "ownMsg", sender: senderName);
 
-    listMsg.add(ownMsg);
     setState(() {
-      listMsg;
+      listMsg.add(ownMsg);
     });
     socket!.emit('sendMsg', {
       "type": "ownMsg",
       "msg": msg,
       "senderName": senderName,
+      "userId": widget.userId,
     });
   }
 
@@ -101,7 +105,6 @@ class ChatPageState extends State<ChatPage> {
                                 msg: listMsg[index].msg,
                                 sender: listMsg[index].sender);
                           }
-                          ;
                         })),
               ],
             )),
@@ -120,7 +123,7 @@ class ChatPageState extends State<ChatPage> {
               IconButton(
                 onPressed: () {
                   String msg = _msgController.text;
-                  if (msg.isEmpty) {
+                  if (msg.isNotEmpty) {
                     sendMsg(msg, widget.name);
                     _msgController.clear();
                   }
