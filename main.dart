@@ -1,5 +1,6 @@
 import 'package:experiment/chat_page.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(
@@ -16,6 +17,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController userNameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  var uuid = Uuid();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +73,10 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ChatPage(name: name),
+                              builder: (context) => ChatPage(
+                                name: name,
+                                userId: uuid.v1(),
+                              ),
                             ));
                       },
                       child: const Text("Enter")),
